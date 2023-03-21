@@ -16,26 +16,115 @@ fun main(args: Array<String>) {
 
     var fileName = "src/dataset/mnist_train.csv";
     var csvChecker = CsvChecker(fileName);
-    println(csvChecker.read(1));
-   // println(csvChecker.read(2));
-   // println(csvChecker.read(3));
-   // println(csvChecker.read(8));
+    //println(csvChecker.read(1));
 
-    var neuralNetwork = NeuralNetwork();
-    var numbersOfHiddenNeurons: Array<Int> = arrayOf(12,11);
+
 
     //println(csvChecker.getNumbers());
 
-    println("the first string for dataset - input data for create network");
-    println(csvChecker.getNumbers()[0])
-    println("result of creating network");
-    println(neuralNetwork.create( 10, numbersOfHiddenNeurons, csvChecker.getNumbers(), 0.4));
-
-    println(neuralNetwork.go(csvChecker.getNumbers()[112]));
-
-    neuralNetwork.learn();
+    //println("the first string for dataset - input data for create network");
+    //println(csvChecker.getNumbers()[0])
+    //println("result of creating network");
 
 
+    //println(neuralNetwork.go(csvChecker.getNumbers()[112]));
+
+    //neuralNetwork.learn();
+
+
+    var inputNumbers = mutableListOf(
+        mutableListOf(
+            0.0,
+            1.0, 1.0, 1.0,
+            1.0, 0.0, 1.0,
+            1.0, 0.0, 1.0,
+            1.0, 0.0, 1.0,
+            1.0, 1.0, 1.0
+        ), //0
+        mutableListOf(
+            1.0,
+            0.0, 1.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 1.0, 0.0
+        ), //1
+        mutableListOf(
+            2.0,
+            1.0, 1.0, 1.0,
+            0.0, 0.0, 1.0,
+            1.0, 1.0, 1.0,
+            1.0, 0.0, 0.0,
+            1.0, 1.0, 1.0
+        ), //2
+        mutableListOf(
+            3.0,
+            1.0, 1.0, 1.0,
+            0.0, 0.0, 1.0,
+            1.0, 1.0, 1.0,
+            0.0, 0.0, 1.0,
+            1.0, 1.0, 1.0
+        ), //3
+        mutableListOf(
+            4.0,
+            1.0, 0.0, 1.0,
+            1.0, 0.0, 1.0,
+            1.0, 1.0, 1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0
+        ), //4
+        mutableListOf(
+            5.0,
+            1.0, 1.0, 1.0,
+            1.0, 0.0, 0.0,
+            1.0, 1.0, 1.0,
+            0.0, 0.0, 1.0,
+            1.0, 1.0, 1.0
+        ), //5
+        mutableListOf(
+            6.0,
+            1.0, 1.0, 1.0,
+            1.0, 0.0, 0.0,
+            1.0, 1.0, 1.0,
+            1.0, 0.0, 1.0,
+            1.0, 1.0, 1.0
+        ), //6
+        mutableListOf(
+            7.0,
+            1.0, 1.0, 1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0
+        ), //7
+        mutableListOf(
+            8.0,
+            1.0, 1.0, 1.0,
+            1.0, 0.0, 1.0,
+            1.0, 1.0, 1.0,
+            1.0, 0.0, 1.0,
+            1.0, 1.0, 1.0
+        ), //8
+        mutableListOf(
+            9.0,
+            1.0, 1.0, 1.0,
+            1.0, 0.0, 1.0,
+            1.0, 1.0, 1.0,
+            0.0, 0.0, 1.0,
+            1.0, 1.0, 1.0
+        ), //9
+    )
+
+    var neuralNetwork = NeuralNetwork();
+    var numbersOfHiddenNeurons: Array<Int> = arrayOf(14,13);
+    println(neuralNetwork.create( 10, numbersOfHiddenNeurons, inputNumbers, 0.1));
+    println();
+
+    for ( k in 0..1) {
+        for ( i in 0..inputNumbers.size-1) {
+            neuralNetwork.learn(inputNumbers[i]);
+        }
+    }
 
 
 }

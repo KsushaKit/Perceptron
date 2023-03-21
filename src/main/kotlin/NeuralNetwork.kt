@@ -18,7 +18,7 @@ class NeuralNetwork {
     var dataset = mutableListOf<MutableList<Double>>();
     var learnRate: Double = 0.0;
 
-    //у входных нейронов нет весов
+    //входные нейроны не хранят веса
 
     //функция подсчета значений в нейронах на одном слое при отсутсвиии весов
     public fun countOutputsInNeurons1(layer: Layer<out Neuron>): MutableList<Double> {
@@ -48,11 +48,9 @@ class NeuralNetwork {
     public fun createInputLayer() {
         //заполнение входного слоя
         var listInputNeurons = mutableListOf<InputNeuron>();
-        var _inputs = mutableListOf<Double>();
 
         for( i in 0..numberOfInputNeurons-1 ) {
-            _inputs.add(0,inputs[i]);
-            var inputNeuron = InputNeuron(_inputs);
+            var inputNeuron = InputNeuron(inputs);
             listInputNeurons.add(inputNeuron);
         }
         var inputLayer = InputLayer(listInputNeurons);
@@ -104,30 +102,28 @@ class NeuralNetwork {
         dataset: MutableList<MutableList<Double>>, learnRate: Double
     ): MutableList<Double> {
 
+        this.dataset = dataset;
         var _inputs = dataset[0];
+        //первое число не считается тк это результат
         for (i in 1.._inputs.size-1) {
-            this.inputs.add(dataset[0][i])
+            this.inputs.add(_inputs[i])
         }
         this.learnRate = learnRate;
         this.numberOfInputNeurons = inputs.size;
         this.numberOfOutputNeurons = numberOfOutputNeurons;
         this.numbersOfHiddenNeurons = numbersOfHiddenNeurons;
-        this.dataset = dataset;
+
 
         createInputLayer();
         createHiddenLayers();
         createOutputLayer();
 
+        println("network create");
         return countOutputsInNeurons1(layers.last());
     }
 
     fun changeInputsInNeurons(prevLayer: Layer<out Neuron>, currLayer: Layer<out Neuron>): Layer<out Neuron> {
-        var inputs = mutableListOf<Double>();
-        var layer: Layer<out Neuron>;
-        inputs = countOutputsInNeurons2(prevLayer);
-
         for( j in 0..currLayer.neurons.size-1 ) {
-           // println("countOutputsInNeurons2(prevLayer) ${countOutputsInNeurons2(prevLayer)}")
             var outputs = countOutputsInNeurons2(prevLayer);
             currLayer.neurons[j].inputs.clear();
             currLayer.neurons[j].inputs.addAll(outputs);
@@ -141,7 +137,8 @@ class NeuralNetwork {
         //filling input layer
         var layer = layers[0];
         for ( i in 0..layer.neurons.size-1) {
-            layer.neurons[i].setInputsValues(newInputs);
+            layer.neurons[i].inputs.clear();
+            layer.neurons[i].inputs.addAll(newInputs);
         }
 
         //заполнение скрытых слоев
@@ -155,51 +152,83 @@ class NeuralNetwork {
     }
 
 //-----------------------------------------------------------------------
-    //функция замены весов во всех нейронах всех слоев
-    public fun learn( data: MutableList<Double> = dataset[1], flag: Int = 1) {
+    //функция обучения сети на датасете
+    public fun learn( data: MutableList<Double>) {
 
         println("data $data")
         //так как на вход подается строка, в которой первое число это ожидаемый результат,
         //а мне нужен список, то я его создаю и на нужное место втавляю то самое число
         var expected = mutableListOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-        expected[data[0].toInt()] = data[0];
-        var actual = go(data);
+        expected[data[0].toInt()] = 1.0;
+        var data2 = data.toMutableList();
+        data2.removeAt(0);
+        var actual = go(data2);
 
-        //предпоследний слой
-        var errors = mutableListOf<Double>();
-        for ( i in 0..layers.last().neurons.size-1 ) {
-            var error = (actual[i] - expected[i]).pow(2);
-            errors.add(error);
+
+        //массив разности выходных и ожидаемых результатов
+        var differences = mutableListOf<Double>();
+        for ( i in 0..expected.size-1 ) {
+            var difference = expected[i] - actual[i];
+            differences.add(difference);
         }
 
-        var layer = layers[layers.size-2];
-        for ( i in 0..layer.neurons.size-1) {
-            var currNeuron = layer.neurons[i];
-            currNeuron.newWeights(errors, learnRate);
-        }
-
-        //остальные слои
-        for ( i in layers.size-3 downTo 0 ) {
-            var prevDeltas = mutableListOf<Double>();
-            for ( k in 0..layers[i+1].neurons.size-1 ) {
-                var prevDelta = layers[i+1].neurons[k].delta;
-                prevDeltas.add(prevDelta);
+        //функция получения errors for neurons in prevLayer
+        fun getErrorsInNeurons(  layer: Layer<out Neuron> ): MutableList<Double> {
+            var errors = mutableListOf<Double>();
+            for ( i in 0..layer.neurons.size-1 ) {
+                errors.add(layer.neurons[i].error);
             }
-            for ( j in 0..layers[i].neurons.size-1 ) {
-                var currNeuron = layers[i].neurons[j];
-                currNeuron.newWeights2(prevDeltas, learnRate);
+            return errors;
+        }
+
+
+        // 1-----------------------------------------------------
+        //вычисление ошибки для каждого нейрона в выходном слое
+        var neuronsArr = layers.last().neurons;
+        for ( i in 0..layers.last().neurons.size-1) {
+            neuronsArr[i].countError(differences[i]);
+        }
+
+        // 2-----------------------------------------------------
+        //вычисление ошибки для каждого нейрона в остальных слоях
+        for ( i in layers.size-2 downTo 1) {
+            var currLayer = layers[i];
+            var prevLayer = layers[i+1];
+            var errors = getErrorsInNeurons(prevLayer);
+            var neurons = prevLayer.neurons ;
+            for ( k in 0..currLayer.neurons.size-1) {
+                var currNeuron = currLayer.neurons[k];
+                currNeuron.countError2( errors , neurons );
             }
         }
+
+        // 3-----------------------------------------------------
+        //вычисление новых весов и замена старых
+        for ( i in layers.size-1 downTo 1 ) {
+            var currLayer = layers[i];
+            for ( k in 0..currLayer.neurons.size-1 ) {
+                var currNeuron = currLayer.neurons[k];
+                currNeuron.newWeights( learnRate );
+                //println("weights")
+                //println(currNeuron.weights.toString())
+            }
+        }
+
+        var afterChange = go(data2);
+        println("expected $expected");
+        println("actual ${afterChange}");
+        println();
         //error = (actual-expected)^2
         //delta = error*sigm(значение в сигме текущего нейрона)dx
         //w1 = w1-значение предыдущего нейрона*delta*learnRate
 
-        println("expected $expected");
-        println("actual $actual");
-        //doing рекурсию, когда строки в датасет закончатся, тогда функция и успокоится
-        if ( flag<dataset.size-2 ) {
+
+    //doing рекурсию, когда строки в датасет закончатся, тогда функция и успокоится
+    /*
+    if ( flag < dataset.size ) {
             learn(dataset[flag], flag+1);
         };
+    */
 
     }
 
