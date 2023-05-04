@@ -115,16 +115,71 @@ fun main(args: Array<String>) {
         ), //9
     )
 
+    var inputNumbers2 = mutableListOf(
+        mutableListOf(
+            0.0,
+            0.0, 0.0
+        ), //0
+        mutableListOf(
+            1.0,
+            0.0, 1.0
+        ), //1
+        mutableListOf(
+            1.0,
+            1.0, 0.0
+        ), //2
+        mutableListOf(
+            0.0,
+            1.0, 1.0
+        ) //3
+    )
+
+    /*
     var neuralNetwork = NeuralNetwork();
-    var numbersOfHiddenNeurons: Array<Int> = arrayOf(14,13);
-    println(neuralNetwork.create( 10, numbersOfHiddenNeurons, inputNumbers, 0.1));
+    var numbersOfHiddenNeurons: Array<Int> = arrayOf(3,2);
+    println(neuralNetwork.create( 1, numbersOfHiddenNeurons, inputNumbers2, 0.7));
     println();
 
-    for ( k in 0..1) {
-        for ( i in 0..inputNumbers.size-1) {
-            neuralNetwork.learn(inputNumbers[i]);
+    for ( k in 0..10000) {
+        for ( i in 0..inputNumbers2.size-1) {
+            neuralNetwork.learn(inputNumbers2[i]);
         }
     }
 
 
+    println("TEST 1, 0.0");
+    println(neuralNetwork.go(mutableListOf(1.0, 1.0)));
+    println("TEST 2, 0.0");
+    println(neuralNetwork.go(mutableListOf(0.0, 0.0)));
+    println("TEST 3, 1.0");
+    println(neuralNetwork.go(mutableListOf(1.0, 0.0)));
+
+    println("TEST 1, 0.0");
+    neuralNetwork2.learn(inputNumbers2[0]);
+    println("TEST 2, 1.0");
+    neuralNetwork2.learn(inputNumbers2[1]);
+    println("TEST 3, 1.0");
+    neuralNetwork2.learn(inputNumbers2[2]);
+    println("TEST 4, 0.0");
+    neuralNetwork2.learn(inputNumbers2[3]);
+    */
+
+    var neuralNetwork2 = NeuralNetwork();
+    var numbersOfHiddenNeurons2: Array<Int> = arrayOf(3,2);
+    println(neuralNetwork2.create( 1, numbersOfHiddenNeurons2, inputNumbers2, 0.89));
+    println();
+
+    for ( k in 0..100000) {
+        for ( i in 0..inputNumbers2.size-1) {
+            neuralNetwork2.learn(inputNumbers2[i]);
+        }
+    }
+
+
+    println("TEST 1, 0.0");
+    println(neuralNetwork2.learn(mutableListOf(1.0, 1.0)));
+    println("TEST 2, 0.0");
+    println(neuralNetwork2.learn(mutableListOf(0.0, 0.0)));
+    println("TEST 3, 1.0");
+    println(neuralNetwork2.learn(mutableListOf(1.0, 0.0)));
 }
